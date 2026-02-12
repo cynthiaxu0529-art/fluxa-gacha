@@ -1,4 +1,7 @@
 {
-  "regions": ["iad1"],
-  "framework": "vercel-python"
+  "rewrites": [
+    { "source": "/api/status", "destination": "/api/status.py" },
+    { "source": "/api/create_payment", "destination": "/api/create_payment.py" },
+    { "source": "/api/draw", "destination": "/api/draw.py" }
+  ]
 }
