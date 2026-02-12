@@ -1,0 +1,279 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🎰 FluxA 扭蛋机</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+        .container {
+            background: white;
+            border-radius: 24px;
+            padding: 40px;
+            max-width: 400px;
+            width: 100%;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.2);
+        }
+        h1 {
+            text-align: center;
+            color: #333;
+            margin-bottom: 8px;
+            font-size: 28px;
+        }
+        .subtitle {
+            text-align: center;
+            color: #666;
+            font-size: 14px;
+            margin-bottom: 32px;
+        }
+        .gacha-machine {
+            width: 200px;
+            height: 200px;
+            margin: 0 auto 32px;
+            background: linear-gradient(180deg, #f093fb 0%, #f5576c 100%);
+            border-radius: 50%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 80px;
+            cursor: pointer;
+            transition: transform 0.3s;
+            box-shadow: 0 10px 30px rgba(240,147,251,0.4);
+        }
+        .gacha-machine:hover {
+            transform: scale(1.05);
+        }
+        .gacha-machine:active {
+            transform: scale(0.95);
+        }
+        .price {
+            text-align: center;
+            font-size: 24px;
+            color: #667eea;
+            font-weight: bold;
+            margin-bottom: 24px;
+        }
+        .btn {
+            width: 100%;
+            padding: 16px;
+            border: none;
+            border-radius: 12px;
+            font-size: 18px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 30px rgba(102,126,234,0.4);
+        }
+        .btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+        .result {
+            margin-top: 24px;
+            padding: 20px;
+            border-radius: 12px;
+            text-align: center;
+            display: none;
+        }
+        .result.show {
+            display: block;
+            animation: slideUp 0.5s ease;
+        }
+        @keyframes slideUp {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .result .emoji {
+            font-size: 48px;
+            margin-bottom: 12px;
+        }
+        .result .prize-name {
+            font-size: 18px;
+            font-weight: bold;
+            color: #333;
+            margin-bottom: 8px;
+        }
+        .result .content {
+            font-size: 14px;
+            color: #666;
+            line-height: 1.6;
+        }
+        .stats {
+            margin-top: 32px;
+            padding-top: 24px;
+            border-top: 1px solid #eee;
+            display: flex;
+            justify-content: space-around;
+        }
+        .stat {
+            text-align: center;
+        }
+        .stat-value {
+            font-size: 24px;
+            font-weight: bold;
+            color: #667eea;
+        }
+        .stat-label {
+            font-size: 12px;
+            color: #999;
+        }
+        .loading {
+            display: none;
+            text-align: center;
+            padding: 20px;
+        }
+        .loading.show {
+            display: block;
+        }
+        .spinner {
+            width: 40px;
+            height: 40px;
+            border: 3px solid #eee;
+            border-top-color: #667eea;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 12px;
+        }
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+        .footer {
+            text-align: center;
+            margin-top: 24px;
+            font-size: 12px;
+            color: #999;
+        }
+        .footer a {
+            color: #667eea;
+            text-decoration: none;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🎰 扭蛋机</h1>
+        <p class="subtitle">FluxA AI Agent 微支付Demo</p>
+        
+        <div class="gacha-machine" onclick="drawGacha()">
+            🥚
+        </div>
+        
+        <p class="price">💰 0.01 USDC</p>
+        
+        <button class="btn btn-primary" id="drawBtn" onclick="drawGacha()">
+            扭一个！
+        </button>
+        
+        <div class="loading" id="loading">
+            <div class="spinner"></div>
+            <p>正在连接FluxA Wallet...</p>
+        </div>
+        
+        <div class="result" id="result">
+            <div class="emoji" id="prizeEmoji"></div>
+            <div class="prize-name" id="prizeName"></div>
+            <div class="content" id="prizeContent"></div>
+        </div>
+        
+        <div class="stats">
+            <div class="stat">
+                <div class="stat-value">8</div>
+                <div class="stat-label">奖品种类</div>
+            </div>
+            <div class="stat">
+                <div class="stat-value">0.01</div>
+                <div class="stat-label">USDC</div>
+            </div>
+            <div class="stat">
+                <div class="stat-value">Base</div>
+                <div class="stat-label">网络</div>
+            </div>
+        </div>
+        
+        <div class="footer">
+            <p>Powered by <a href="https://fluxapay.xyz" target="_blank">FluxA Wallet</a></p>
+        </div>
+    </div>
+
+    <script>
+        const prizes = [
+            { type: 'poem', emoji: '📝', name: '藏头诗', content: '藏头诗生成中...' },
+            { type: 'fortune', emoji: '🔮', name: '今日运势', content: '大吉大利！' },
+            { type: 'joke', emoji: '😂', name: '冷笑话', content: '为什么AI不会累？' },
+            { type: 'image_prompt', emoji: '🎨', name: 'AI画图Prompt', content: 'Cyberpunk city, neon lights...' },
+            { type: 'blessing', emoji: '🧧', name: '祝福语', content: '财源滚滚！' },
+            { type: 'fact', emoji: '❄️', name: '冷知识', content: 'AI可以写诗...' },
+            { type: 'motivation', emoji: '💪', name: '励志语录', content: '今天也要加油！' },
+            { type: 'code_snippet', emoji: '💻', name: '代码片段', content: 'print("Hello!")' }
+        ];
+
+        async function drawGacha() {
+            const btn = document.getElementById('drawBtn');
+            const loading = document.getElementById('loading');
+            const result = document.getElementById('result');
+            
+            // Disable button
+            btn.disabled = true;
+            loading.classList.add('show');
+            result.classList.remove('show');
+            
+            try {
+                // 1. 创建支付 (模拟)
+                console.log('1. 创建支付...');
+                const paymentResponse = await fetch('/api/create_payment', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ amount: 0.01 })
+                });
+                const payment = await paymentResponse.json();
+                console.log('支付创建:', payment);
+                
+                // 模拟支付延迟
+                await new Promise(r => setTimeout(r, 1500));
+                
+                // 2. 抽奖
+                console.log('2. 抽奖...');
+                const drawResponse = await fetch('/api/draw', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ payment_id: payment.data.payment_id })
+                });
+                const drawResult = await drawResponse.json();
+                console.log('抽奖结果:', drawResult);
+                
+                // 3. 显示结果
+                const prize = prizes[Math.floor(Math.random() * prizes.length)];
+                
+                document.getElementById('prizeEmoji').textContent = prize.emoji;
+                document.getElementById('prizeName').textContent = prize.name;
+                document.getElementById('prizeContent').textContent = prize.content;
+                
+                result.classList.add('show');
+                
+            } catch (error) {
+                console.error('Error:', error);
+                alert('出错了，请重试！');
+            } finally {
+                btn.disabled = false;
+                loading.classList.remove('show');
+            }
+        }
+    </script>
+</body>
+</html>
